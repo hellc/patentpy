@@ -1,4 +1,4 @@
-.DS_Store
+.venv
 *.zip
 *.txt
 *.csv
@@ -16,3 +16,4 @@
 /docs/build/doctrees
 /dist
 /patentpy.egg-info
+.venv/bin/activate.csh
