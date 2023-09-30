@@ -110,12 +110,14 @@ int txt_to_df_cpp(std::string input_file, std::string output_file, bool append, 
         fout = std::ofstream(output_file);
 
         // output header line to CSV (if necessary)
-        if (header) fout << "WKU,Title,App_Date,Issue_Date,Inventor,Assignee,ICL_Class,References,Claims\n";
+        if (header) fout << "WKU,Title,Abstract,App_Date,Issue_Date,Inventor,Assignee,ICL_Class,References,Claims\n";
     }
 
     // variables holding patent properties
     std::string currID = "",
                 title = "",
+                tempAbstract = "",
+                abstract = "",
                 appDate = "",
                 issDate = "",
                 inventor = "",
@@ -134,6 +136,7 @@ int txt_to_df_cpp(std::string input_file, std::string output_file, bool append, 
     bool inPatent = false,
          gotAPD = false,
          gotISD = false,
+         inAbstract = false,
          inClaims = false;
 
     // read input file line-by-line and store patent data
@@ -149,6 +152,7 @@ int txt_to_df_cpp(std::string input_file, std::string output_file, bool append, 
             {
                 // remove quotes from text claims field first to avoid CSV issues
                 removeQuotes(currClaims);
+                removeQuotes(abstract);
                 removeQuotes(inventor);
                 removeQuotes(assignee);
                 removeQuotes(title);
@@ -156,6 +160,7 @@ int txt_to_df_cpp(std::string input_file, std::string output_file, bool append, 
 
                 fout << currID
                      << ",\"" << title
+                     << "\",\"" << abstract
                      << "\"," << appDate
                      << "," << issDate
                      << ",\"" << inventor
@@ -172,6 +177,8 @@ int txt_to_df_cpp(std::string input_file, std::string output_file, bool append, 
             gotAPD = false;
             gotISD = false;
             title = "";
+            tempAbstract = "";
+            abstract = "";
             appDate = "";
             issDate = "";
             tempInvt = "";
@@ -185,6 +192,7 @@ int txt_to_df_cpp(std::string input_file, std::string output_file, bool append, 
             currClaims = "";
             tempClaims = "";
             inClaims = false;
+            inAbstract = false;
         }
         else if (inPatent && startsWith(currLine, "TTL  "))
         {
@@ -251,6 +259,27 @@ int txt_to_df_cpp(std::string input_file, std::string output_file, bool append, 
             // add this reference to set of references for this patent
             appendToField(refs, tempRef);
         }
+        else if (inPatent && startsWith(currLine, "ABST"))
+        {
+            // we're in abstract, text will be coming soon
+            inAbstract = true;
+        }
+        else if (inPatent && inAbstract && (startsWith(currLine, "PAR  ") ||
+                                          startsWith(currLine, "PA1  ") ||
+                                          startsWith(currLine, "PAL  ") ||
+                                          startsWith(currLine, "     ")))
+        {
+            // add abstract text
+            tempAbstract = extractField(currLine, 5);
+            stripEdgeWhitespace(tempAbstract);
+            replaceBadChars(tempAbstract);
+            abstract += " " + tempAbstract;
+        }
+        else if (inAbstract)
+        {
+            // not in abstract anymore
+            inAbstract = false;
+        }
         else if (inPatent && (startsWith(currLine, "CLMS") || startsWith(currLine, "DCLM")))
         {
             // we're in claims, text will be coming soon
@@ -293,10 +322,12 @@ int txt_to_df_cpp(std::string input_file, std::string output_file, bool append, 
     removeQuotes(currClaims);
     removeQuotes(inventor);
     removeQuotes(assignee);
+    removeQuotes(abstract);
     removeQuotes(title);
     replaceBadChars(title);
     fout << currID
          << ",\"" << title
+         << "\",\"" << abstract
          << "\"," << appDate
          << "," << issDate
          << ",\"" << inventor
