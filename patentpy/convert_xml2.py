@@ -106,7 +106,7 @@ def extractFields2(parsed):
         abstract_txt = abstract[i].text if abstract[i].text else ""
         abstract[i] = abstract_txt
     abstract = "".join(abstract).replace('"', "") if claims else ""
-    print(abstract)
+    # print(abstract)
 
     return '"{}","{}","{}","{}","{}","{}","{}","{}","{}","{}"\n'.format(
         WKU,
