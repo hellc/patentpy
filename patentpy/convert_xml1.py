@@ -120,7 +120,7 @@ def xml1_to_df(input_file, output_file, append, header):
     ) as f2:
         if header:
             f2.write(
-                "WKU,Title,App_Date,Issue_Date,Inventor,Assignee,ICL_Class,References,Claims\n"
+                "WKU,Title,Abstract,App_Date,Issue_Date,Inventor,Assignee,ICL_Class,References,Claims\n"
             )
 
         # initialize vars and parser

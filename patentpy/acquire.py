@@ -208,7 +208,7 @@ def convert_to_df(dates_df, output_file=None):
     # get temp file contents and read into pandas as df if no output file specified
     if output_file is None:
         try:
-            df = pd.read_csv(temp_output_file)
+            df = pd.read_csv(temp_output_file, encoding="iso-8859-1")
             if df.shape[0] <= 0:
                 remove(temp_output_file)
                 raise Exception(
